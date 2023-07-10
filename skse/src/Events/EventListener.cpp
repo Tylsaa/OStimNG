@@ -145,11 +145,15 @@ namespace Events {
             } else if (keyCode == MCM::MCMTable::keySpeedDown()) {
                 OStim::ThreadManager::GetSingleton()->getPlayerThread()->decreaseSpeed();
             } else if (keyCode == MCM::MCMTable::keyPullOut()){
-                // TODO do this internally once we don't need OSA anymore
-                if (vm) {
-                    RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> callback;
-                    auto args = RE::MakeFunctionArguments();
-                    vm->DispatchStaticCall("OSKSE", "PullOut", args, callback);
+                if (UI::UIState::GetSingleton()->GetActiveMenu() == UI::MenuType::kAlignMenu) {
+                    UI::UIState::GetSingleton()->HandleControl(UI::Controls::No);
+                } else {
+                    // TODO do this internally once we don't need OSA anymore
+                    if (vm) {
+                        RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> callback;
+                        auto args = RE::MakeFunctionArguments();
+                        vm->DispatchStaticCall("OSKSE", "PullOut", args, callback);
+                    }
                 }
             } else if (keyCode == MCM::MCMTable::keyAutoMode()){
                 OStim::Thread* thread = OStim::ThreadManager::GetSingleton()->getPlayerThread();
