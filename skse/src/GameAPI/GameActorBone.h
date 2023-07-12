@@ -14,5 +14,7 @@ namespace GameAPI {
                    powf((object->world.translate.y - other.object->world.translate.y), 2) +
                    powf((object->world.translate.z - other.object->world.translate.z), 2);
         }
+
+        inline float distance(GameActorBone other) { return std::sqrtf(squareDistance(other)); }
     };
 }

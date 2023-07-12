@@ -45,8 +45,8 @@ namespace Sound {
     }
 
     void BoneDistanceSoundPlayer::calculateThreshold() {
-        float min = std::sqrtf(minDistance);
-        float max = std::sqrtf(maxDistance);
+        float min = minDistance;
+        float max = maxDistance;
 
         distanceThreshold = std::powf(min + (max - min) * (inverse ? 0.9 : 0.1), 2);
     }
