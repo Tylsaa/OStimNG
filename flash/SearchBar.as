@@ -10,218 +10,143 @@ class SearchBar extends MovieClip
 {
 	var bg:MovieClip;
 	var divider:MovieClip;
+	var textInput:MovieClip;
+	var fakeButton:MovieClip;
 
 	var CurrentlySelectedIdx = -1;
-	var textInput:MovieClip;
-
 	var topGutter = 10;
 	var bottomGutter = 28;
 	var optionGutter = 8;
 	var lineHeight = 48;
 	var minHeight = lineHeight + optionGutter + bottomGutter;
-
 	var maxOptions = 10;
-
 	var menuGutter = 22;
-
 	var _isOpen = false;
 	var scrollPosition:Number = 0;
 	var visibleItems:Array = [];
 	var maxScrollPosition:Number;
-
 	var fields = new Array();
 	var PrevFocus:MovieClip;
 	var _inputtingText:Boolean = false;
-	var fakeButton:MovieClip;
+
+
 	var widthTweenTime:Number = 0.25;
 	var heightTweenTime:Number = 0.25;
 
-	{
-		public function SearchBar()
-    {
+     private var mouseWheelListener:Object;
+     {
+	public function SearchBar()
+     {
         super();
         init();
-    }
-		private function init():Void 
-    {
+     }
+     private function init():Void 
+     {
 		bg._width = 0;
 		bg._height = 0;
 		UpdateSize(minHeight,355);
-		        mouseWheelListener = new Object();
-        mouseWheelListener.onMouseWheel = Delegate.create(this, onMouseWheel);
-        Mouse.addListener(mouseWheelListener);
+
+		mouseWheelListener = new Object();
+        	mouseWheelListener.onMouseWheel = Delegate.create(this, onMouseWheel);
+        	Mouse.addListener(mouseWheelListener);
 
 		// For Testing
 		//AssignData(generateTestData(5));
-	}
+     }
 	
-	    private function onMouseWheel(delta:Number):Void 
-	{
+     private function onMouseWheel(delta:Number):Void 
+     {
         if (delta > 0) {
             scrollUp();
-    } else if (delta < 0) {
+     } else if (delta < 0) {
             scrollDown();
-    }
-    }
-	    private function scrollUp():Void {
+     }
+     }
+     private function scrollUp():Void {
         if (scrollPosition > 0) {
-            scrollPosition--;
-            AssignData(dataArray);
-    }
-    }
+            	scrollPosition--;
+            	updateVisibleItems();
+     }
+     }
 
-		private function scrollDown():Void {
-    if (scrollPosition < maxScrollPosition) {
-        scrollPosition++;
-        AssignData(dataArray);
-    }
-	}
+     private function scrollDown():Void {
+    	if (scrollPosition < maxScrollPosition) {
+        	scrollPosition++;
+        	updateVisibleItems();
+     }
+     }
 
-	public function AssignData(data:Array)
-	{
-    if (!data || data.length === 0) {
-        return;
-    }
+     public function AssignData(data:Array):Void
+     	if (!data || data.length === 0) {
+		clearData();
+     }
     
-    visibleItems = [];
+     visibleItems = [];
     
-    var totalHeight:Number = minHeight + topGutter + ((optionGutter + lineHeight) * data.length);
-    var maxVisibleItems:Number = Math.floor((bg._height - topGutter) / (optionGutter + lineHeight));
+     var totalHeight:Number = minHeight + topGutter + ((optionGutter + lineHeight) * data.length);
+     var maxVisibleItems:Number = Math.floor((bg._height - topGutter) / (optionGutter + lineHeight));
     
-    totalHeight = Math.max(totalHeight, minHeight);
-    maxScrollPosition = data.length - maxVisibleItems;
+     totalHeight = Math.max(totalHeight, minHeight);
+     maxScrollPosition = data.length - maxVisibleItems;
     
-    scrollPosition = Math.max(0, Math.min(scrollPosition, maxScrollPosition));
+     scrollPosition = Math.max(0, Math.min(scrollPosition, maxScrollPosition));
     
-    visibleItems = data.slice(scrollPosition, scrollPosition + maxVisibleItems);
-    UpdateDisplay();
-}
-private function UpdateDisplay()void
-{
-    for (var i:Number = 0; i < visibleItems.length; i++)
-    {
-        if (fields[i])
-        {
-            fields[i]._visible = true;
-            fields[i].init(i, visibleItems[i]);
-        }
-    }
-}
+     visibleItems = data.slice(scrollPosition, scrollPosition + maxVisibleItems);
+     updatevisibleItems();
+     }
+     private function updateVisibleItems():Void
+     {
+     for (var i:Number = 0; i < fields.length; i++)
+     {
+        if (!fields[i])
+     {
+        	fields[i] = this.attachMovie("SearchOption", "o" + i, i + 1, {_x: menuGutter, _y: 0 - (minHeight + lineHeight + ((optionGutter + lineHeight) * i)), _height: lineHeight});
+     }      
+			fields[i]._visible = true;
+            		fields[i].init(i, visibleItems[i]);
+     }
+     }
+     public function UpdateSize(newHeight:Number, newWidth:Number):Void
+     {
+		TweenLite.to(bg,widthTweenTime,{_width:newWidth + (menuGutter * 2), _x:(newWidth + (menuGutter * 2)) / 2});
+		TweenLite.to(divider,0.5,{_width:newWidth, _x:menuGutter});
+		TweenLite.to(bg,heightTweenTime,{delay:widthTweenTime, _height:newHeight, _y:0 - (newHeight / 2)});
+     }
+     }
 
-private function debounce(func:Function, delay:Number):Function {
-    var timer:Number;
-    return function() {
+     private function debounce(func:Function, delay:Number):Function {
+     var timer:Number;
+     return function() {
         clearTimeout(timer);
         var context = this, args = arguments;
         timer = setTimeout(function() {
             func.apply(context, args);
         }, delay);
-    };
-}
-
-	public function UpdateSize(newHeight:Number, newWidth:Number)
-	{
-		TweenLite.to(bg,widthTweenTime,{_width:newWidth + (menuGutter * 2), _x:(newWidth + (menuGutter * 2)) / 2});
-		TweenLite.to(divider,0.5,{_width:newWidth, _x:menuGutter});
-		TweenLite.to(bg,heightTweenTime,{delay:widthTweenTime, _height:newHeight, _y:0 - (newHeight / 2)});
-	}
-    }
-    public function removeMouseWheelListener():Void {
+     };
+     }
+     public function removeMouseWheelListener():Void {
         if (mouseWheelListener != null) {
             Mouse.removeListener(mouseWheelListener);
             mouseWheelListener = null;
-    }
-    }
-    public function onDestroy():Void {
+     }
+     }
+     public function onDestroy():Void {
         removeMouseWheelListener();
-    }
-	}
-
-	var fields = new Array();
-	var PrevFocus:MovieClip;
-	var _inputtingText:Boolean = false;
-	function set inputtingText(val:Boolean)
+     }
+     public function HandleKeyboardInput(input:Number):Void
 	{
-		_inputtingText = val;
-		doSetInputtingText(val);
-	}
-
-	function set inputtingText(val:Boolean)
-	{
-		_inputtingText = val;
-		doSetInputtingText(val);
-	}
-	function get inputtingText()
-	{
-		return _inputtingText;
-	}
-	var fakeButton;
-
-	var widthTweenTime = 0.25;
-	var heightTweenTime = 0.25;
-
-	public function SearchBar()
-	{
-	public function HandleKeyboardInput(input:Number)
-	{
-    switch (input)
-    {
+     switch (input)
+     {
         case 0:
-            debounce(scrollUp(), 100)();
+            debounce(scrollUp(), 100).call(this);
             break;
         case 1:
-            debounce(scrollDown(), 100)();
+            debounce(scrollDown(), 100).call(this);
             break;
-   	}
-	}
-
-					return true;
-				};
-				break;
-			case 1 :
-				{
-					if (!inputtingText)
-					{
-						if (CurrentlySelectedIdx - 1 < 0)
-						{
-							CurrentlySelectedIdx = 0;
-							UpdateHighlight();
-						}
-						else
-						{
-							CurrentlySelectedIdx--;
-							UpdateHighlight();
-						}
-					}
-					return true;
-				};
-				break;
-			case 4 :
-				{
-					if (inputtingText)
-					{
-
-						return true;
-					}
-					else
-					{
-						SelectOption();
-						return true;
-					}
-				};
-				break;
-			case 5 :
-				{
-					ClearAndHide();
-					return true;
-				};
-				break;
-			default :
-				return;
-		}
-	}
-	public function handleInput(details:InputDetails, pathToFocus:Array):Boolean
-	{
+     }
+     }
+     public function handleInput(details:InputDetails, pathToFocus:Array):Boolean
+     {
 		if (GlobalFunc.IsKeyPressed(details))
 		{
 			if (details.navEquivalent == NavigationCode.ENTER && details.code != 32)
@@ -238,18 +163,20 @@ private function debounce(func:Function, delay:Number):Function {
 			{
 				ClearAndHide();
 				return true;
-	}
-	}
-	function onMouseDown()
-	{
+     }
+     }
+			return false;
+     }
+     private function onMouseDown():Void
+     {
 		if (Mouse.getTopMostEntity() == textInput.textField)
 		{
 			EnableTextInput();
 		}
-	}
+     }
 
-	function UpdateHighlight()
-	{
+     private function UpdateHighlight():Void
+     {
 		for (var i = 0; i < fields.length; i++)
 		{
 			fields[i].OnUnHighlight();
@@ -259,96 +186,49 @@ private function debounce(func:Function, delay:Number):Function {
 			fields[CurrentlySelectedIdx].OnHighlight();
 		}
 
-	}
+     }
 
-	function ClearAndHide()
-	{
+     private function ClearAndHide():Void
+     {
 		doHideMenuRequest();
-	}
-	function ClearInput()
-	{
+     }
+     private function ClearInput():Void
+     {
 		textInput.text = "";
-	}
-	function DisableTextInput()
-	{
+     }
+     private function DisableTextInput():Void
+     {
 		inputtingText = false;
 		textInput.editable = false;
 		gfx.managers.FocusHandler.instance.setFocus(fakeButton,0);
 		Selection.setFocus(fakeButton);
-	}
-	function EnableTextInput()
-	{
+     }
+     private function EnableTextInput():Void
+     {
 		textInput.editable = true;
 		gfx.managers.FocusHandler.instance.setFocus(textInput.textField,0);
 		Selection.setFocus(textInput.textField);
 		inputtingText = true;
-	}
+     }
 
-	public function AssignData(data:Array)
-	{
-		for (var k = 0; k < fields.length; k++)
-		{
-			fields[k]._visible = false;
-			fields[k].optionVal.text = "";
-		}
+	
+     private function clearData():Void {
+        for (var k = 0; k < fields.length; k++) {
+            fields[k]._visible = false;
+            fields[k].optionVal.text = "";
+     }
+        HideDivider();
+        var newHeight = minHeight;
+        TweenLite.to(bg, 0.5, {_height: newHeight, _y: 0 - (newHeight / 2), _width: 355, _x: 355 / 2});
+        CurrentlySelectedIdx = -1;
+        EnableTextInput();
+     }
 
-		if (data.length == 0)
-		{
-			HideDivider();
-			var newHeight = minHeight;
-			TweenLite.to(bg,0.5,{_height:newHeight, _y:0 - (newHeight / 2), _width:355, _x:355 / 2});
-
-			CurrentlySelectedIdx = -1;
-			EnableTextInput();
-		}
-		else
-		{
-			ShowDivider();
-			var optCount = data.length > maxOptions ? maxOptions : data.length;
-
-			for (var i = 0; i < optCount; i++)
-			{
-				if (fields.length < i + 1)
-				{
-					fields.push(this.attachMovie("SearchOption", "o" + i, i + 1, {_x:menuGutter, _y:0 - (minHeight + lineHeight + ((optionGutter + lineHeight) * i)), _height:lineHeight}));
-					fields[i]._visible = false;
-				}
-				fields[i].init(i,data[i]);
-
-			}
-			var maxWidth = 340;
-			for (var j = 0; j < optCount; j++)
-			{
-				if (fields[j].optionVal.textWidth > maxWidth)
-				{
-					maxWidth = fields[j].optionVal.textWidth;
-				}
-			}
-
-			var newHeight = minHeight + topGutter + ((optionGutter + lineHeight) * optCount);
-			UpdateSize(newHeight,maxWidth);
-
-			for (var i2 = 0; i2 < optCount; i2++)
-			{
-				TweenLite.delayedCall((widthTweenTime + (heightTweenTime * ((i2 / optCount)))),makeVisible,[fields[i2]]);
-			}
-
-			CurrentlySelectedIdx = 0;
-			DisableTextInput();
-		}
-		UpdateHighlight();
-	}
-	function makeVisible(field)
-	{
-		field._visible = true;
-	}
-	public function SetIdx(field)
-	{
-		CurrentlySelectedIdx = field.idx;
-	}
-
-	public function SetIsOpen(isOpen:Boolean)
-	{
+     public function SetIdx(field):Void {
+        CurrentlySelectedIdx = field.idx;
+     }
+     public function SetIsOpen(isOpen:Boolean)
+     {
 		this._isOpen = isOpen;
 		if (_isOpen)
 		{
@@ -361,33 +241,33 @@ private function debounce(func:Function, delay:Number):Function {
 			AssignData([]);
 			DisableTextInput();
 		}
-	}
+     }
 
-	public function SelectOption()
-	{
+     public function SelectOption()
+     {
 		var val = fields[CurrentlySelectedIdx].sceneid;
 		if (val != undefined)
 		{
 			doSelectOption(val);
 			ClearAndHide();
 		}
-	}
+     }
 
 
-	function HideDivider()
-	{
+     private function HideDivider():Void
+     {
 		divider._alpha = 00;
 		divider._visible = false;
-	}
+     }
 
-	function ShowDivider()
-	{
+     private function ShowDivider():Void
+     {
 		divider._visible = true;
 		divider._alpha = 70;
-	}
+     }
 
-	function generateTestData(count:Number)
-	{
+     private function generateTestData(count:Number):Array
+     {
 		_isOpen = true;
 		var arr = new Array(count);
 		for (var i = 0; i < count; i++)
@@ -395,31 +275,31 @@ private function debounce(func:Function, delay:Number):Function {
 			arr[i] = {label:"AAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBB" + i, value:"v" + i};
 		}
 		return arr;
-	}
+     }
 
-	function Search()
-	{
+     private function Search():Void
+     {
 		doSearch(textInput.text);
-	}
+     }
 
-	public function doSelectOption(val:String)
-	{
+     public function doSelectOption(val:String):Void
+     {
 
-	}
+     }
 
-	function doHideMenuRequest()
-	{
+     private function doHideMenuRequest():Void
+     {
 
-	}
+     }
 
-	function doSearch(val:String)
-	{
+     private function doSearch(val:String):Void
+     {
 
-	}
+     }
 
-	function doSetInputtingText(inputting:Boolean)
-	{
+     private function doSetInputtingText(inputting:Boolean):Void
+     {
 
-	}
+     }
 
 }
