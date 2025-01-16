@@ -50,68 +50,30 @@ namespace GameAPI {
         }
     }
 
-    void GameCamera::endSceneMode(bool firstPerson) {
-        RE::PlayerCamera* camera = RE::PlayerCamera::GetSingleton();
-        if (camera->IsInFreeCameraMode()) {
-            toggleFlyCamInner();
-        } else if (GameLogic::GameTable::improvedCamSupport()) {
-            if (REL::Module::get().version().patch() < 1130) {
-                RE::ControlMap::GetSingleton()->enabledControls.set(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            } else {
-                // bandaid fix until CLib-NG is updated
-                auto ptr = &RE::ControlMap::GetSingleton()->enabledControls;
-                ptr += 8;
-                (*ptr).set(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            }
-        }
-        if (firstPerson) {
-            std::thread camThread = std::thread([&] {
-                RE::PlayerCamera::GetSingleton()->ForceFirstPerson();
-            });
-            camThread.detach();
-        }
+void GameCamera::endSceneMode(bool firstPerson) {
+    RE::PlayerCamera* camera = RE::PlayerCamera::GetSingleton();
 
-        if (GameLogic::GameTable::improvedCamSupport()) {
-            RE::PlayerControls::GetSingleton()->data.povScriptMode = false;
-        }
+    // Disable free camera mode if active
+    if (camera->IsInFreeCameraMode()) {
+        toggleFlyCamInner();
     }
 
-    void GameCamera::toggleFreeCam() {
-        auto camera = RE::PlayerCamera::GetSingleton();
-
-        if (!GameLogic::GameTable::improvedCamSupport()) {
-            if (camera->IsInFirstPerson()) {
-                camera->ForceThirdPerson();
-            }
-
-            toggleFlyCamInner();
-            return;
-        }
-
-        if (camera->IsInFreeCameraMode()) {
-            toggleFlyCamInner();
-            camera->ForceFirstPerson();
-            if (REL::Module::get().version().patch() < 1130) {
-                RE::ControlMap::GetSingleton()->enabledControls.reset(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            } else {
-                // bandaid fix until CLib-NG is updated
-                auto ptr = &RE::ControlMap::GetSingleton()->enabledControls;
-                ptr += 8;
-                (*ptr).reset(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            }
-            camera->ForceThirdPerson();
-        } else {
-            if (REL::Module::get().version().patch() < 1130) {
-                RE::ControlMap::GetSingleton()->enabledControls.set(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            } else {
-                // bandaid fix until CLib-NG is updated
-                auto ptr = &RE::ControlMap::GetSingleton()->enabledControls;
-                ptr += 8;
-                (*ptr).set(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
-            }
-            toggleFlyCamInner();
-        }
+    // Always restore player controls
+    RE::ControlMap* controlMap = RE::ControlMap::GetSingleton();
+    if (controlMap) {
+        controlMap->enabledControls.set(RE::UserEvents::USER_EVENT_FLAG::kPOVSwitch);
     }
+
+    if (firstPerson) {
+        camera->ForceFirstPerson();
+    } else if (!GameLogic::GameTable::improvedCamSupport() && camera->IsInFirstPerson()) {
+        camera->ForceThirdPerson();
+    }
+
+    if (GameLogic::GameTable::improvedCamSupport()) {
+        RE::PlayerControls::GetSingleton()->data.povScriptMode = false;
+    }
+}
 
     void GameCamera::toggleFlyCamInner() {
         const auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
