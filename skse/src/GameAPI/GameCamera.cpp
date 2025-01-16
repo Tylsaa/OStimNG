@@ -66,8 +66,10 @@ void GameCamera::endSceneMode(bool firstPerson) {
 
     if (firstPerson) {
         camera->ForceFirstPerson();
-    } else if (!GameLogic::GameTable::improvedCamSupport() && camera->IsInFirstPerson()) {
-        camera->ForceThirdPerson();
+    } else if (!GameLogic::GameTable::improvedCamSupport()) {
+        if (camera->IsInFirstPerson()) {
+            camera->ForceThirdPerson();
+        }
     }
 
     if (GameLogic::GameTable::improvedCamSupport()) {
