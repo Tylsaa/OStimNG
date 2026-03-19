@@ -28,13 +28,13 @@ EndFunction
 
 Function SetBarPercent(Float Value)
 If (IsBarOpen)
-UI.InvokeFloat(OStimBarMenu, "_root.setPercent", Value)
+UI.InvokeFloat(OStimBarMenu, "_root.bar._xscale", Value * 100.0)
 EndIf
 EndFunction
 
 Function SetBarVisible(Bool Visible)
 If (IsBarOpen)
-UI.InvokeBool(OStimBarMenu, "_root.setVisible", Visible)
+UI.InvokeBool(OStimBarMenu, "_root.bar._visible", Visible)
 EndIf
 EndFunction
 
