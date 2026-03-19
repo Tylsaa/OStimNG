@@ -10,13 +10,13 @@ ScriptName OBarsScript Extends Quest
 ;
 ;				Code related to the on-screen bars
 
-
 OSexIntegrationMain Property OStim Auto
 
 ;--------- bars
 OSexBar Property DomBar Auto
 OSexBar Property SubBar Auto
 OSexBar Property ThirdBar Auto
+OStim_UIController Property UIController Auto
 ;---------
 
 Int Blue = 0xADD8E6
@@ -33,8 +33,12 @@ Int LastSpeed
 Event OnInit()
 	InititializeAllBars()
 
-	OnGameLoad()
+If UIController
+	Utility.Wait(0.5)
+	UIController.OpenBar()
+EndIf
 
+	OnGameLoad()
 	LastSmackTime = 0
 EndEvent
 
@@ -63,18 +67,14 @@ Function InitBar(OSexBar Bar, Int ID)
 		Bar.SetColors(gray, purple, white)
 	EndIf
 
-	SetBarVisible(Bar, False)
-EndFunction
-
 Function SetBarVisible(OSexBar Bar, Bool Visible)
-	If (Visible)
-		Bar.FadeTo(100.0, 1.0)
-		Bar.FadedOut = False
-	Else
-		Bar.FadeTo(0.0, 1.0)
-		Bar.FadedOut = True
+	If UIController
+	UIController.SetBarVisible(Visible)
+Else
+	Bar.FadeTo(Visible ? 100.0 : 0.0, 1.0)
 	EndIf
 EndFunction
+
 
 Function ColorBar(OSexBar Bar, Bool Female = True, Bool Schlong = True, Int ColorZ = -1)
 	Int Color
@@ -98,8 +98,14 @@ Bool Function IsBarVisible(OSexBar Bar)
 EndFunction
 
 Function SetBarPercent(OSexBar Bar, Float Percent)
+	If UIController
+	UIController.SetBarPercent(Percent / 100.0)
+Else
 	Bar.SetPercent(Percent / 100.0)
+	EndIf
 EndFunction
+
+
 
 Function ForceBarPercent(OSexBar Bar, Float Percent)
 	Bar.ForcePercent(Percent / 100.0)
